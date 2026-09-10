@@ -8,10 +8,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 class Settings(BaseSettings):
     DATABASE_URL: str
     ENV: str = "development"
-
     SUPABASE_URL: str = ""
-    SUPABASE_ANON_KEY: str = ""
-    SUPABASE_SERVICE_ROLE_KEY: str = ""
+    SUPABASE_PUBL_KEY: str = ""
+    SUPABASE_SECRET_KEY: str = ""
+
+    SECRET_KEY: str = "ecobite-super-secret-key-change-in-production-32-chars-min"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
 
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:5173",  # Vite / React dev server
