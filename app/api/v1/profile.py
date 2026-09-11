@@ -12,8 +12,7 @@ router = APIRouter(prefix="/profile", tags=["Profile"])
 
 @router.get("", response_model=ProfileResponse)
 def get_profile(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    profile = user_service.get_or_create_profile(db, current_user)
-    return user_service.build_profile_response(current_user, profile)
+    return user_service.get_profile(db, current_user)
 
 @router.put("", response_model=ProfileResponse)
 def update_profile(
@@ -28,8 +27,7 @@ def delete_profile(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    profile = user_service.get_or_create_profile(db, current_user)
-    response_data = user_service.build_profile_response(current_user, profile)
+    response_data = user_service.get_profile(db, current_user)
 
     delete_supabase_user(str(current_user.id))
 
