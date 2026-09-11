@@ -7,7 +7,6 @@ from app.api.v1.profile import router as profile_router
 
 app = FastAPI(title="EcoBite API", version="1.0.0")
 
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,

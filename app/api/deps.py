@@ -3,9 +3,8 @@ from fastapi import Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.models.domain import User
+from app.models.user import User
 from app.clients.supabase_client import supabase
-
 
 def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
     token = request.cookies.get("access_token")
