@@ -15,7 +15,10 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
     status_code=status.HTTP_201_CREATED
 )
 def register(user_in: UserCreate, db: Session = Depends(get_db)):
-    supabase_user = register_user(user_in.email, user_in.password)
+    try:
+        supabase_user = register_user(user_in.email, user_in.password)
+    except HTTPException as e:
+        raise e
 
     existing_user = db.query(User).filter(User.id == supabase_user.id).first()
     if existing_user:
@@ -38,7 +41,14 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
 
     db.add(new_user)
     db.add(new_profile)
-    db.commit()
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to create local user record: {str(e)}"
+        )
 
     return RegistrationResponse(
         id=new_user.id,
@@ -61,7 +71,23 @@ def login(user_in: UserLogin, response: Response, db: Session = Depends(get_db))
 
     user = db.query(User).filter(User.email == user_in.email).first()
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        print(f"--- WARNING: local user missing for {user_in.email}, recreating from Supabase ---")
+        from app.clients.supabase_client import supabase
+        user_response = supabase.auth.get_user(access_token)
+        sup_user = user_response.user
+
+        user = User(id=sup_user.id, email=sup_user.email)
+        profile = UserProfile(id=sup_user.id, display_name=sup_user.email.split("@")[0])
+        db.add(user)
+        db.add(profile)
+        try:
+            db.commit()
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Failed to create local user record: {str(e)}"
+            )
 
     return {"id": user.id, "email": user.email}
 

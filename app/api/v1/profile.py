@@ -1,10 +1,13 @@
-from fastapi import APIRouter, Depends
+from http.client import HTTPException
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.models.domain import User, UserProfile
 from app.schemas.domain import ProfileResponse, ProfileUpdate
 from app.api.deps import get_current_user
+from app.services.auth_service import delete_supabase_user
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
 
@@ -82,7 +85,15 @@ def delete_profile(
         preferred_cooking_time_minutes=profile.preferred_cooking_time_minutes if profile else None,
     )
 
-    db.delete(current_user)
-    db.commit()
+    delete_supabase_user(str(current_user.id))
 
+    try:
+        db.delete(current_user)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Supabase user deleted, but local cleanup failed: {str(e)}"
+        )
     return response_data

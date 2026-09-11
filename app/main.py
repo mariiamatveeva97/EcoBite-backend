@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.api.v1.auth import router as auth_router
+from app.routers.auth import router as auth_router
 from app.api.v1.profile import router as profile_router
 
 app = FastAPI(title="EcoBite API", version="1.0.0")
