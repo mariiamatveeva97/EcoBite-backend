@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, date
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy import String, Text, Float, Integer, Date, DateTime, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID, JSONB
@@ -22,3 +22,6 @@ class Recipe(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     user: Mapped["User"] = relationship("User", back_populates="recipes")
+    ingredients: Mapped[List["RecipeIngredient"]] = relationship(
+        "RecipeIngredient", back_populates="recipe", cascade="all, delete-orphan"
+    )

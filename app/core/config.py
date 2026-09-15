@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     SUPABASE_URL: str = ""
     SUPABASE_PUBL_KEY: str = ""
     SUPABASE_SECRET_KEY: str = ""
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "openai/gpt-oss-120b"
 
     SPOONACULAR_API_KEY: str = ""
 

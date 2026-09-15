@@ -4,7 +4,6 @@ from app.models.user import User, UserProfile
 from app.schemas.user import ProfileResponse, ProfileUpdate
 from app.repositories import user_repository
 
-
 def get_profile(db: Session, user: User) -> ProfileResponse:
     profile = _get_or_create_profile(db, user)
     return _build_profile_response(user, profile)
