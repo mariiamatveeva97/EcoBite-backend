@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     SUPABASE_PUBL_KEY: str = ""
     SUPABASE_SECRET_KEY: str = ""
 
+    SPOONACULAR_API_KEY: str = ""
+
     SECRET_KEY: str = "ecobite-super-secret-key-change-in-production-32-chars-min"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
