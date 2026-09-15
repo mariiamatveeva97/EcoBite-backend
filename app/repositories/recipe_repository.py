@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.models.recipe import Recipe
 from app.models.recipe_ingredient import RecipeIngredient
+from app.models.recipe_nutritional_data import RecipeNutritionalData
 
 def create_recipe(
     db: Session,
@@ -45,3 +46,17 @@ def get_by_id(db: Session, recipe_id: UUID) -> Optional[Recipe]:
 
 def get_all_for_user(db: Session, user_id: UUID) -> List[Recipe]:
     return db.query(Recipe).filter(Recipe.user_id == user_id).all()
+
+def add_nutrition(db: Session, recipe_id: UUID, nutrition_data: dict) -> RecipeNutritionalData:
+    nutrition = RecipeNutritionalData(
+        recipe_id=recipe_id,
+        calories=nutrition_data["calories"],
+        proteins=nutrition_data["proteins"],
+        fats=nutrition_data["fats"],
+        carbs=nutrition_data["carbs"],
+        nutri_score=nutrition_data["nutri_score"],
+    )
+    db.add(nutrition)
+    db.commit()
+    db.refresh(nutrition)
+    return nutrition
