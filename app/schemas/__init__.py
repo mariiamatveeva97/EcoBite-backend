@@ -1,6 +1,6 @@
 from app.schemas.user import UserCreate, UserResponse
-
-from app.schemas.domain import IngredientCreate, IngredientResponse, RecipeCreate, RecipeResponse
+from app.schemas.ingredient import IngredientCreate, IngredientResponse
+from app.schemas.domain import RecipeCreate, RecipeResponse
 
 __all__ = [
     "UserCreate", "UserResponse",
