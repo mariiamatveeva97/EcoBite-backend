@@ -18,6 +18,13 @@ def create(db: Session, user_id: UUID, ingredient_in: IngredientCreate) -> Ingre
     db.refresh(ingredient)
     return ingredient
 
+def update(db: Session, ingredient: Ingredient, update_data: dict) -> Ingredient:
+    for field, value in update_data.items():
+        setattr(ingredient, field, value)
+    db.commit()
+    db.refresh(ingredient)
+    return ingredient
+
 def delete(db: Session, ingredient: Ingredient) -> None:
     db.delete(ingredient)
     db.commit()

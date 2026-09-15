@@ -1,7 +1,6 @@
 from fastapi import HTTPException, status
 from app.clients.supabase_client import supabase, supabase_admin
 
-
 def register_user(email: str, password: str):
     try:
         response = supabase.auth.sign_up({
@@ -48,7 +47,6 @@ def authenticate_user(email: str, password: str):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
         )
-
 
 def delete_supabase_user(user_id: str):
     try:
