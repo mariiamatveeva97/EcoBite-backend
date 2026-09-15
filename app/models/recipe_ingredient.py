@@ -5,7 +5,6 @@ from sqlalchemy.dialects.postgresql import UUID
 
 from app.core.database import Base
 
-
 class RecipeIngredient(Base):
     __tablename__ = "recipe_ingredients"
 
