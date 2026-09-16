@@ -15,7 +15,8 @@ def get_nutrition_for_recipe(recipe_ingredients: List[RecipeIngredient], serving
     try:
         response = httpx.post(
             SPOONACULAR_URL,
-            params={"apiKey": settings.SPOONACULAR_API_KEY, "includeNutrition": "true"},
+            headers={"x-api-key": settings.SPOONACULAR_API_KEY},
+            params={"includeNutrition": "true"},
             data={"ingredientList": ingredient_lines, "servings": servings or 1},
             timeout=20.0,
         )
