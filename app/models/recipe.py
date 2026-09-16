@@ -6,6 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 from app.core.database import Base
+from app.models.energy_metrics import EnergyMetrics
 from app.models.user import User
 
 class Recipe(Base):
@@ -27,4 +28,7 @@ class Recipe(Base):
     )
     nutrition: Mapped[Optional["RecipeNutritionalData"]] = relationship(
         "RecipeNutritionalData", back_populates="recipe", uselist=False, cascade="all, delete-orphan"
+    )
+    energy: Mapped[Optional["EnergyMetrics"]] = relationship(
+        "EnergyMetrics", back_populates="recipe", uselist=False, cascade="all, delete-orphan"
     )

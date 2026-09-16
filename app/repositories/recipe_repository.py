@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.models.recipe import Recipe
 from app.models.recipe_ingredient import RecipeIngredient
 from app.models.recipe_nutritional_data import RecipeNutritionalData
+from app.models.energy_metrics import EnergyMetrics
 
 def create_recipe(
     db: Session,
@@ -60,3 +61,16 @@ def add_nutrition(db: Session, recipe_id: UUID, nutrition_data: dict) -> RecipeN
     db.commit()
     db.refresh(nutrition)
     return nutrition
+
+def add_energy_metrics(db: Session, recipe_id: UUID, energy_data: dict) -> EnergyMetrics:
+    energy = EnergyMetrics(
+        recipe_id=recipe_id,
+        estimated_kwh=energy_data["estimated_kwh"],
+        co2_impact_grams=energy_data["co2_impact_grams"],
+        energy_efficiency_label=energy_data["energy_efficiency_label"],
+        estimated_cost_eur=energy_data["estimated_cost_eur"],
+    )
+    db.add(energy)
+    db.commit()
+    db.refresh(energy)
+    return energy

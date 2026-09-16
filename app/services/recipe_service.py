@@ -5,8 +5,7 @@ from fastapi import HTTPException, status
 from app.models.user import User
 from app.schemas.recipe import RecipeResponse
 from app.repositories import recipe_repository, ingredient_repository, user_repository
-from app.clients import groq_client
-from app.clients import groq_client, spoonacular_client
+from app.clients import groq_client, spoonacular_client, soap_client
 
 def generate_recipe_for_user(db: Session, user: User) -> RecipeResponse:
     ingredients = ingredient_repository.get_all_for_user(db, user.id)
@@ -22,8 +21,15 @@ def generate_recipe_for_user(db: Session, user: User) -> RecipeResponse:
 
     nutrition_data = spoonacular_client.get_nutrition_for_recipe(recipe.ingredients, recipe.servings)
     recipe_repository.add_nutrition(db, recipe.id, nutrition_data)
-    db.refresh(recipe)
 
+    energy_data = soap_client.calculate_energy_metrics(
+        appliance="stove",
+        cooking_time_minutes=recipe.cooking_time_minutes,
+        servings=recipe.servings or 1,
+    )
+    recipe_repository.add_energy_metrics(db, recipe.id, energy_data)
+
+    db.refresh(recipe)
     return RecipeResponse.model_validate(recipe)
 
 def _save_recipe(db: Session, user_id: UUID, recipe_data: dict):
