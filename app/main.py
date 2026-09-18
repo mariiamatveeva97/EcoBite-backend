@@ -10,6 +10,7 @@ from app.api.v1.recipes import router as recipe_router
 from app.models.ingredient import Ingredient # noqa: F401 — required to register model with SQLAlchemy
 from app.models.recipe import Recipe # noqa: F401 — required to register model with SQLAlchemy
 from app.models.recipe_ingredient import RecipeIngredient # noqa: F401 — required to register model with SQLAlchemy
+from app.models.recipe_nutritional_data import RecipeNutritionalData  # noqa: F401 — required to register model with SQLAlchemy
 
 app = FastAPI(title="EcoBite API", version="1.0.0")
 

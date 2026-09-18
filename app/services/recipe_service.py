@@ -6,6 +6,7 @@ from app.models.user import User
 from app.schemas.recipe import RecipeResponse
 from app.repositories import recipe_repository, ingredient_repository, user_repository
 from app.clients import groq_client
+from app.clients import groq_client, spoonacular_client
 
 def generate_recipe_for_user(db: Session, user: User) -> RecipeResponse:
     ingredients = ingredient_repository.get_all_for_user(db, user.id)
@@ -18,6 +19,10 @@ def generate_recipe_for_user(db: Session, user: User) -> RecipeResponse:
     profile = user_repository.get_profile_by_id(db, user.id)
     recipe_data = groq_client.generate_recipe(ingredients, profile)
     recipe = _save_recipe(db, user.id, recipe_data)
+
+    nutrition_data = spoonacular_client.get_nutrition_for_recipe(recipe.ingredients, recipe.servings)
+    recipe_repository.add_nutrition(db, recipe.id, nutrition_data)
+    db.refresh(recipe)
 
     return RecipeResponse.model_validate(recipe)
 

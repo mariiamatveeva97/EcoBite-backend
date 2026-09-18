@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "openai/gpt-oss-120b"
 
+    SPOONACULAR_API_KEY: str = ""
+
     SECRET_KEY: str = "ecobite-super-secret-key-change-in-production-32-chars-min"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
