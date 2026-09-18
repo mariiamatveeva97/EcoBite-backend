@@ -52,6 +52,8 @@ def _aggregate_nutrition(parsed_ingredients: list) -> dict:
     return totals
 
 def _estimate_nutri_score(totals: dict) -> str:
+    # SIMPLIFIED MVP PLACEHOLDER — NOT the official Nutri-Score algorithm.
+    # This function only considers total calories as a rough proxy.
     calories = totals["calories"]
     if calories < 400:
         return "A"
