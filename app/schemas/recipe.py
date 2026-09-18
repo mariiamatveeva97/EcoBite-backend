@@ -26,7 +26,9 @@ class NutritionResponse(BaseModel):
     proteins: float
     fats: float
     carbs: float
-    nutri_score: str
+    nutri_score: str = Field(
+        description="Simplified calorie-based estimate, NOT the official Nutri-Score algorithm (MVP placeholder)."
+    )
 
     model_config = ConfigDict(from_attributes=True)
 
