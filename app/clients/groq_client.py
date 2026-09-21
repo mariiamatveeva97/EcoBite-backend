@@ -1,6 +1,7 @@
 import json
 import httpx
 from typing import List, Optional
+from pydantic import BaseModel, ValidationError
 from fastapi import HTTPException, status
 
 from app.core.config import settings
@@ -19,9 +20,22 @@ _SYSTEM_PROMPT = (
     "Respect dietary preferences and allergies. Respond with ONLY the JSON object."
 )
 
+class _GroqRecipeIngredient(BaseModel):
+    name: str
+    amount: float
+    unit: str
+
+class _GroqRecipeContract(BaseModel):
+    title: str
+    description: Optional[str] = None
+    instructions: List[str]
+    cooking_time_minutes: int
+    servings: Optional[int] = None
+    tags: Optional[List[str]] = None
+    ingredients: List[_GroqRecipeIngredient]
+
 def generate_recipe(ingredients: List[Ingredient], profile: Optional[UserProfile]) -> dict:
     prompt = _build_prompt(ingredients, profile)
-
     try:
         response = httpx.post(
             GROQ_API_URL,
@@ -46,7 +60,6 @@ def generate_recipe(ingredients: List[Ingredient], profile: Optional[UserProfile
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"Groq API request failed: {str(e)}"
         )
-
     raw_content = response.json()["choices"][0]["message"]["content"]
     return _parse_recipe_json(raw_content)
 
@@ -71,9 +84,18 @@ def _build_prompt(ingredients: List[Ingredient], profile: Optional[UserProfile])
 
 def _parse_recipe_json(raw_content: str) -> dict:
     try:
-        return json.loads(raw_content)
+        data = json.loads(raw_content)
     except json.JSONDecodeError:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="Groq API returned invalid JSON"
         )
+    try:
+        validated = _GroqRecipeContract.model_validate(data)
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Groq response did not match expected recipe contract: {e}"
+        )
+
+    return validated.model_dump()
