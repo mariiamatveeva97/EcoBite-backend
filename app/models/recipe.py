@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, date
+from datetime import datetime
 from typing import Optional, List
 from sqlalchemy import String, Text, Float, Integer, Date, DateTime, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -24,4 +24,7 @@ class Recipe(Base):
     user: Mapped["User"] = relationship("User", back_populates="recipes")
     ingredients: Mapped[List["RecipeIngredient"]] = relationship(
         "RecipeIngredient", back_populates="recipe", cascade="all, delete-orphan"
+    )
+    nutrition: Mapped[Optional["RecipeNutritionalData"]] = relationship(
+        "RecipeNutritionalData", back_populates="recipe", uselist=False, cascade="all, delete-orphan"
     )
