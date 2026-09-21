@@ -62,15 +62,15 @@ def add_nutrition(db: Session, recipe_id: UUID, nutrition_data: dict) -> RecipeN
     db.refresh(nutrition)
     return nutrition
 
-def add_energy_metrics(db: Session, recipe_id: UUID, energy_data: dict) -> EnergyMetrics:
-    energy = EnergyMetrics(
+def add_energy_metrics(db: Session, recipe_id: UUID, energy_data: dict):
+    metrics = EnergyMetrics(
         recipe_id=recipe_id,
         estimated_kwh=energy_data["estimated_kwh"],
         co2_impact_grams=energy_data["co2_impact_grams"],
         energy_efficiency_label=energy_data["energy_efficiency_label"],
         estimated_cost_eur=energy_data["estimated_cost_eur"],
     )
-    db.add(energy)
+    db.add(metrics)
     db.commit()
-    db.refresh(energy)
-    return energy
+    db.refresh(metrics)
+    return metrics

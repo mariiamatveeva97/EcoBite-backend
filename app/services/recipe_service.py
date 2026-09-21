@@ -22,8 +22,10 @@ def generate_recipe_for_user(db: Session, user: User) -> RecipeResponse:
     nutrition_data = spoonacular_client.get_nutrition_for_recipe(recipe.ingredients, recipe.servings)
     recipe_repository.add_nutrition(db, recipe.id, nutrition_data)
 
+    appliance_type = recipe_data.get("appliance", "stove")
+
     energy_data = soap_client.calculate_energy_metrics(
-        appliance="stove",
+        appliance=appliance_type,
         cooking_time_minutes=recipe.cooking_time_minutes,
         servings=recipe.servings or 1,
     )
