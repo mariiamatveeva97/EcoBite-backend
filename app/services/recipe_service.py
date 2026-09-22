@@ -6,7 +6,7 @@ from fastapi import HTTPException, status
 from app.models.user import User
 from app.schemas.recipe import RecipeResponse
 from app.repositories import recipe_repository, ingredient_repository, user_repository
-from app.clients import groq_client, spoonacular_client
+from app.clients import groq_client, spoonacular_client, soap_client
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,17 @@ def generate_recipe_for_user(db: Session, user: User) -> RecipeResponse:
         recipe_repository.add_nutrition(db, recipe.id, nutrition_data)
     except HTTPException as e:
         logger.warning(f"Nutrition enrichment failed for recipe {recipe.id}: {e.detail}")
+
+    appliance_type = recipe_data.get("appliance", "stove")
+    try:
+        energy_data = soap_client.calculate_energy_metrics(
+            appliance=appliance_type,
+            cooking_time_minutes=recipe.cooking_time_minutes,
+            servings=recipe.servings or 1,
+        )
+        recipe_repository.add_energy_metrics(db, recipe.id, energy_data)
+    except HTTPException as e:
+        logger.warning(f"Energy metrics calculation failed for recipe {recipe.id}: {e.detail}")
 
     db.refresh(recipe)
     return RecipeResponse.model_validate(recipe)

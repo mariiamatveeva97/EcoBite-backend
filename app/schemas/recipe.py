@@ -32,11 +32,20 @@ class NutritionResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class EnergyMetricsResponse(BaseModel):
+    estimated_kwh: float
+    co2_impact_grams: float
+    energy_efficiency_label: str
+    estimated_cost_eur: float
+
+    model_config = ConfigDict(from_attributes=True)
+
 class RecipeResponse(RecipeBase):
     id: UUID
     user_id: Optional[UUID] = None
     created_at: datetime
     ingredients: List[RecipeIngredientResponse] = Field(default_factory=list)
     nutrition: Optional[NutritionResponse] = None
+    energy: Optional[EnergyMetricsResponse] = None
 
     model_config = ConfigDict(from_attributes=True)

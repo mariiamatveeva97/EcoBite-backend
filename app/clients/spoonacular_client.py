@@ -48,6 +48,9 @@ def _aggregate_nutrition(parsed_ingredients: list) -> dict:
                 totals["carbs"] += amount
 
     totals["calories"] = round(totals["calories"])
+    totals["proteins"] = round(totals["proteins"], 1)
+    totals["fats"] = round(totals["fats"], 1)
+    totals["carbs"] = round(totals["carbs"], 1)
     totals["nutri_score"] = _estimate_nutri_score(totals)
     return totals
 
