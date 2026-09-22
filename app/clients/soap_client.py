@@ -1,27 +1,25 @@
+import logging
 import httpx
 from lxml import etree
 from fastapi import HTTPException, status
-import logging
 
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-_SOAP_URL = getattr(settings, "SOAP_SERVICE_URL", "http://localhost:8001/")
-
 def calculate_energy_metrics(
-        appliance: str,
-        cooking_time_minutes: int,
-        servings: int = 1,
-        temperature_celsius: int = 200,
-        power_setting: str = "medium",
+    appliance: str,
+    cooking_time_minutes: int,
+    servings: int = 1,
+    temperature_celsius: int = 200,
+    power_setting: str = "medium",
 ) -> dict:
     try:
         xml_body = _build_request_xml(appliance, cooking_time_minutes)
 
         with httpx.Client(timeout=5.0) as client:
             response = client.post(
-                _SOAP_URL,
+                settings.SOAP_SERVICE_URL,
                 content=xml_body,
                 headers={"Content-Type": "text/xml; charset=utf-8"}
             )
@@ -30,11 +28,10 @@ def calculate_energy_metrics(
             _check_soap_fault(etree.fromstring(response.content))
             return _parse_response_xml(response.content)
 
-        logger.warning(f"SOAP service status {response.status_code}. Using fallback mock.")
+        logger.warning(f"SOAP service returned HTTP {response.status_code}. Using fallback mock.")
         return _mock_calculate(appliance, cooking_time_minutes, servings, power_setting)
-
-    except Exception as e:
-        logger.warning(f"SOAP request failed ({e}). Falling back to mock calculation.")
+    except (httpx.RequestError, httpx.TimeoutException) as e:
+        logger.warning(f"SOAP network/transport error ({e}). Falling back to mock calculation.")
         return _mock_calculate(appliance, cooking_time_minutes, servings, power_setting)
 
 def _build_request_xml(appliance: str, time_minutes: int) -> bytes:
