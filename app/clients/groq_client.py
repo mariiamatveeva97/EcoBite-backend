@@ -1,8 +1,8 @@
 import json
 import httpx
 from typing import List, Optional
-from fastapi import HTTPException, status
 from pydantic import BaseModel, Field, ValidationError
+from fastapi import HTTPException, status
 
 from app.core.config import settings
 from app.models.ingredient import Ingredient
@@ -10,35 +10,35 @@ from app.models.user import UserProfile
 
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
-class IngredientSchema(BaseModel):
+class _GroqRecipeIngredient(BaseModel):
     name: str
     amount: float
     unit: str
 
-class GroqRecipeResponse(BaseModel):
+class _GroqRecipeContract(BaseModel):
     title: str
-    description: Optional[str] = ""
-    ingredients: List[IngredientSchema] = []
-    instructions: List[str] = []
-    cooking_time_minutes: int = Field(default=15, ge=1)
-    servings: int = Field(default=1, ge=1)
+    description: Optional[str] = None
+    instructions: List[str]
+    cooking_time_minutes: int
+    servings: Optional[int] = None
+    tags: Optional[List[str]] = None
+    ingredients: List[_GroqRecipeIngredient]
     appliance: str = Field(default="stove")
 
-_SYSTEM_PROMPT = """
-You are a professional chef assistant. Generate a structured JSON recipe based on user input.
-The JSON response MUST include the following fields:
-- title (string)
-- description (string)
-- ingredients (list of objects with name, amount, unit)
-- instructions (list of strings)
-- cooking_time_minutes (integer)
-- servings (integer)
-- appliance (string: main cooking appliance used, e.g., "stove", "oven", "airfryer", "microwave", "blender")
-"""
+_SYSTEM_PROMPT = (
+    "You are a recipe generator. Given available ingredients and a user profile, "
+    "generate ONE recipe as valid JSON with exactly this structure: "
+    '{"title": str, "description": str, "instructions": [str, ...], '
+    '"cooking_time_minutes": int, "servings": int, "tags": [str, ...], '
+    '"appliance": str, '
+    '"ingredients": [{"name": str, "amount": number, "unit": str}, ...]}. '
+    "appliance must be the main cooking appliance (stove, oven, airfryer, microwave, blender). "
+    "Only use ingredients from the list (plus basic staples like salt, pepper, oil). "
+    "Respect dietary preferences and allergies. Respond with ONLY the JSON object."
+)
 
 def generate_recipe(ingredients: List[Ingredient], profile: Optional[UserProfile]) -> dict:
     prompt = _build_prompt(ingredients, profile)
-
     try:
         response = httpx.post(
             GROQ_API_URL,
@@ -63,7 +63,6 @@ def generate_recipe(ingredients: List[Ingredient], profile: Optional[UserProfile
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"Groq API request failed: {str(e)}"
         )
-
     raw_content = response.json()["choices"][0]["message"]["content"]
     return _parse_recipe_json(raw_content)
 
@@ -88,10 +87,18 @@ def _build_prompt(ingredients: List[Ingredient], profile: Optional[UserProfile])
 
 def _parse_recipe_json(raw_content: str) -> dict:
     try:
-        validated_recipe = GroqRecipeResponse.model_validate_json(raw_content)
-        return validated_recipe.model_dump()
-    except (json.JSONDecodeError, ValidationError) as e:
+        data = json.loads(raw_content)
+    except json.JSONDecodeError:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Groq API returned invalid recipe structure: {str(e)}"
+            detail="Groq API returned invalid JSON"
         )
+    try:
+        validated = _GroqRecipeContract.model_validate(data)
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Groq response did not match expected recipe contract: {e}"
+        )
+
+    return validated.model_dump()

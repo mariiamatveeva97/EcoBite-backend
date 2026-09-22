@@ -21,13 +21,14 @@ def generate_recipe_for_user(db: Session, user: User) -> RecipeResponse:
     profile = user_repository.get_profile_by_id(db, user.id)
     recipe_data = groq_client.generate_recipe(ingredients, profile)
     recipe = _save_recipe(db, user.id, recipe_data)
+
     try:
         nutrition_data = spoonacular_client.get_nutrition_for_recipe(recipe.ingredients, recipe.servings)
         recipe_repository.add_nutrition(db, recipe.id, nutrition_data)
     except HTTPException as e:
         logger.warning(f"Nutrition enrichment failed for recipe {recipe.id}: {e.detail}")
 
-    appliance_type = recipe_data["appliance"]
+    appliance_type = recipe_data.get("appliance", "stove")
     try:
         energy_data = soap_client.calculate_energy_metrics(
             appliance=appliance_type,
@@ -37,6 +38,7 @@ def generate_recipe_for_user(db: Session, user: User) -> RecipeResponse:
         recipe_repository.add_energy_metrics(db, recipe.id, energy_data)
     except HTTPException as e:
         logger.warning(f"Energy metrics calculation failed for recipe {recipe.id}: {e.detail}")
+
     db.refresh(recipe)
     return RecipeResponse.model_validate(recipe)
 
