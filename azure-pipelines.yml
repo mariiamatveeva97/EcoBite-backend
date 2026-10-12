@@ -1,0 +1,34 @@
+trigger:
+  - main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  azureSubscription: 'sc-ecobite'
+  resourceGroup: 'rg-ecobite-apim'
+
+steps:
+  - task: AzureCLI@2
+    displayName: 'Deploy infrastructure (Bicep)'
+    inputs:
+      azureSubscription: $(azureSubscription)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az deployment group create \
+          --resource-group $(resourceGroup) \
+          --template-file main.bicep
+        WEBAPP=$(az deployment group show \
+          --resource-group $(resourceGroup) \
+          --name main \
+          --query properties.outputs.webAppName.value -o tsv)
+        echo "##vso[task.setvariable variable=webAppName]$WEBAPP"
+
+  - task: AzureWebApp@1
+    displayName: 'Deploy backend code'
+    inputs:
+      azureSubscription: $(azureSubscription)
+      appType: webAppLinux
+      appName: $(webAppName)
+      package: $(System.DefaultWorkingDirectory)
