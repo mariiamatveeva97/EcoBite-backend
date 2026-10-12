@@ -54,3 +54,16 @@ def _save_recipe(db: Session, user_id: UUID, recipe_data: dict):
         tags=recipe_data.get("tags"),
         ingredients=recipe_data.get("ingredients", []),
     )
+
+def get_recipes_for_user(db: Session, user: User) -> list[RecipeResponse]:
+    recipes = recipe_repository.get_all_for_user(db, user.id)
+    return [RecipeResponse.model_validate(r) for r in recipes]
+
+def get_recipe_by_id(db: Session, user: User, recipe_id: UUID) -> RecipeResponse:
+    recipe = recipe_repository.get_by_id(db, recipe_id)
+    if not recipe or recipe.user_id != user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Recipe not found"
+        )
+    return RecipeResponse.model_validate(recipe)
