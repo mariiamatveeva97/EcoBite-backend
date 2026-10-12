@@ -56,6 +56,10 @@ def add_nutrition(db: Session, recipe_id: UUID, nutrition_data: dict) -> RecipeN
         fats=nutrition_data["fats"],
         carbs=nutrition_data["carbs"],
         nutri_score=nutrition_data["nutri_score"],
+        calories_per_serving=nutrition_data["calories_per_serving"],
+        proteins_per_serving=nutrition_data["proteins_per_serving"],
+        fats_per_serving=nutrition_data["fats_per_serving"],
+        carbs_per_serving=nutrition_data["carbs_per_serving"],
     )
     db.add(nutrition)
     db.commit()

@@ -29,7 +29,10 @@ class NutritionResponse(BaseModel):
     nutri_score: str = Field(
         description="Simplified calorie-based estimate, NOT the official Nutri-Score algorithm (MVP placeholder)."
     )
-
+    calories_per_serving: int
+    proteins_per_serving: float
+    fats_per_serving: float
+    carbs_per_serving: float
     model_config = ConfigDict(from_attributes=True)
 
 class EnergyMetricsResponse(BaseModel):

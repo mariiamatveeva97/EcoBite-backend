@@ -8,6 +8,7 @@ from app.models.recipe_ingredient import RecipeIngredient
 SPOONACULAR_URL = "https://api.spoonacular.com/recipes/parseIngredients"
 
 def get_nutrition_for_recipe(recipe_ingredients: List[RecipeIngredient], servings: Optional[int]) -> dict:
+    servings = servings or 1
     ingredient_lines = "\n".join(
         f"{ri.amount} {ri.unit} {ri.ingredient_name}" for ri in recipe_ingredients
     )
@@ -17,7 +18,7 @@ def get_nutrition_for_recipe(recipe_ingredients: List[RecipeIngredient], serving
             SPOONACULAR_URL,
             headers={"x-api-key": settings.SPOONACULAR_API_KEY},
             params={"includeNutrition": "true"},
-            data={"ingredientList": ingredient_lines, "servings": servings or 1},
+            data={"ingredientList": ingredient_lines, "servings": servings},
             timeout=20.0,
         )
         response.raise_for_status()
@@ -28,9 +29,9 @@ def get_nutrition_for_recipe(recipe_ingredients: List[RecipeIngredient], serving
         )
 
     parsed = response.json()
-    return _aggregate_nutrition(parsed)
+    return _aggregate_nutrition(parsed, servings)
 
-def _aggregate_nutrition(parsed_ingredients: list) -> dict:
+def _aggregate_nutrition(parsed_ingredients: list, servings: int) -> dict:
     totals = {"calories": 0.0, "proteins": 0.0, "fats": 0.0, "carbs": 0.0}
 
     for item in parsed_ingredients:
@@ -52,6 +53,12 @@ def _aggregate_nutrition(parsed_ingredients: list) -> dict:
     totals["fats"] = round(totals["fats"], 1)
     totals["carbs"] = round(totals["carbs"], 1)
     totals["nutri_score"] = _estimate_nutri_score(totals)
+
+    totals["calories_per_serving"] = round(totals["calories"] / servings)
+    totals["proteins_per_serving"] = round(totals["proteins"] / servings, 1)
+    totals["fats_per_serving"] = round(totals["fats"] / servings, 1)
+    totals["carbs_per_serving"] = round(totals["carbs"] / servings, 1)
+
     return totals
 
 def _estimate_nutri_score(totals: dict) -> str:

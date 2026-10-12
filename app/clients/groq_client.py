@@ -3,6 +3,7 @@ import httpx
 from typing import List, Optional
 from pydantic import BaseModel, Field, ValidationError
 from fastapi import HTTPException, status
+import random
 
 from app.core.config import settings
 from app.models.ingredient import Ingredient
@@ -25,17 +26,28 @@ class _GroqRecipeContract(BaseModel):
     ingredients: List[_GroqRecipeIngredient]
     appliance: str = Field(default="stove")
 
-_SYSTEM_PROMPT = (
-    "You are a recipe generator. Given available ingredients and a user profile, "
-    "generate ONE recipe as valid JSON with exactly this structure: "
-    '{"title": str, "description": str, "instructions": [str, ...], '
-    '"cooking_time_minutes": int, "servings": int, "tags": [str, ...], '
-    '"appliance": str, '
-    '"ingredients": [{"name": str, "amount": number, "unit": str}, ...]}. '
-    "appliance must be the main cooking appliance (stove, oven, airfryer, microwave, blender). "
-    "Only use ingredients from the list (plus basic staples like salt, pepper, oil). "
-    "Respect dietary preferences and allergies. Respond with ONLY the JSON object."
-)
+_SYSTEM_PROMPT = """
+You are a creative professional chef assistant who specializes in turning
+ordinary pantry ingredients into surprising, delicious dishes. Avoid the
+most obvious or generic preparation — think about different cuisines,
+cooking techniques, and flavor combinations each time.
+
+Generate a structured JSON recipe based on user input.
+
+The JSON response MUST include the following fields:
+- title (string) — make it specific and appetizing, not generic
+- description (string) — 1-2 sentences, mention what makes this dish special
+- ingredients (list of objects with name, amount, unit)
+- instructions (list of strings) — clear, step-by-step
+- cooking_time_minutes (integer)
+- servings (integer)
+- appliance (string: main cooking appliance used, e.g., "stove", "oven", "airfryer", "microwave", "blender")
+"""
+
+_CUISINE_HINTS = [
+    "Mediterranean", "Asian-inspired", "Mexican-inspired", "French",
+    "Middle Eastern", "Italian", "Indian-inspired", "comfort food",
+]
 
 def generate_recipe(ingredients: List[Ingredient], profile: Optional[UserProfile]) -> dict:
     prompt = _build_prompt(ingredients, profile)
@@ -53,7 +65,7 @@ def generate_recipe(ingredients: List[Ingredient], profile: Optional[UserProfile
                     {"role": "user", "content": prompt},
                 ],
                 "response_format": {"type": "json_object"},
-                "temperature": 0.7,
+                "temperature": 0.9,
             },
             timeout=30.0,
         )
@@ -70,7 +82,6 @@ def _build_prompt(ingredients: List[Ingredient], profile: Optional[UserProfile])
     ingredients_text = ", ".join(
         f"{i.quantity} {i.unit} {i.name}" for i in ingredients
     ) or "no ingredients provided"
-
     lines = []
     if profile:
         if profile.dietary_preferences:
@@ -81,9 +92,13 @@ def _build_prompt(ingredients: List[Ingredient], profile: Optional[UserProfile])
             lines.append(f"Cooking level: {profile.cooking_experience_level}")
         if profile.preferred_cooking_time_minutes:
             lines.append(f"Max cooking time: {profile.preferred_cooking_time_minutes} min")
-
     profile_text = "\n".join(lines) if lines else "No specific preferences."
-    return f"Available ingredients: {ingredients_text}\n\nUser profile:\n{profile_text}"
+    style_hint = random.choice(_CUISINE_HINTS)
+    return (
+        f"Available ingredients: {ingredients_text}\n\n"
+        f"User profile:\n{profile_text}\n\n"
+        f"Try a {style_hint} take on this dish, if it fits the ingredients well."
+    )
 
 def _parse_recipe_json(raw_content: str) -> dict:
     try:

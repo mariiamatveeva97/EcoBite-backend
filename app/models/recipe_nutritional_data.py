@@ -17,5 +17,9 @@ class RecipeNutritionalData(Base):
     fats: Mapped[float] = mapped_column(Numeric, nullable=False)
     carbs: Mapped[float] = mapped_column(Numeric, nullable=False)
     nutri_score: Mapped[str] = mapped_column(String(1), nullable=False)
+    calories_per_serving: Mapped[int] = mapped_column(Integer, nullable=False)
+    proteins_per_serving: Mapped[float] = mapped_column(Numeric, nullable=False)
+    fats_per_serving: Mapped[float] = mapped_column(Numeric, nullable=False)
+    carbs_per_serving: Mapped[float] = mapped_column(Numeric, nullable=False)
 
     recipe: Mapped["Recipe"] = relationship("Recipe", back_populates="nutrition")
