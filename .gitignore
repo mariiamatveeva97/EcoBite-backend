@@ -227,3 +227,7 @@ venv/
 __pycache__/
 *.pyc
 .env
+*.zip
+main.json
+whatif.txt
+deploy.txt
