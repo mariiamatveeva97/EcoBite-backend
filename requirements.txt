@@ -1,7 +1,10 @@
-fastapi
-uvicorn[standard]
+fastapi==0.141.1
+starlette==1.6.0
+anyio==4.13.0
+pydantic==2.13.4
+uvicorn[standard]==0.52.4
+typing-extensions==4.15.0
 sqlalchemy
-pydantic
 pydantic-settings
 email-validator
 python-multipart
@@ -14,4 +17,3 @@ groq
 httpx
 requests
 zeep
-typing-extensions>=4.6.0
