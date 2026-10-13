@@ -32,3 +32,5 @@ steps:
       appType: webAppLinux
       appName: $(webAppName)
       package: $(System.DefaultWorkingDirectory)
+      runtimeStack: 'PYTHON|3.11'
+      startUpCommand: 'python -m uvicorn app.main:app --host 0.0.0.0 --port 8000'
