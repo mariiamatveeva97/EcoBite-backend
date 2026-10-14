@@ -1,0 +1,6 @@
+// Verdeling van HTTP-statuscodes door de gateway
+ApiManagementGatewayLogs
+| where TimeGenerated > ago(24h)
+| where tolower(_ResourceId) has "ecobite-lktyc37ky6ppu-apim"
+| summarize Aantal = count() by ResponseCode
+| order by ResponseCode asc
