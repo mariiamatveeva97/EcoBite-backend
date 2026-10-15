@@ -7,8 +7,30 @@ pool:
 variables:
   azureSubscription: 'sc-ecobite'
   resourceGroup: 'rg-ecobite-apim'
+  pythonVersion: '3.11'
 
 steps:
+  - task: UsePythonVersion@0
+    displayName: 'Use Python $(pythonVersion)'
+    inputs:
+      versionSpec: '$(pythonVersion)'
+  - script: |
+      python -m pip install --upgrade pip
+      pip install -r requirements-dev.txt
+    displayName: 'Install dependencies'
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+  - script: python -m pytest -p no:cacheprovider --junitxml=$(Agent.TempDirectory)/test-results.xml
+    displayName: 'Run tests (pytest)'
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+  - task: PublishTestResults@2
+    displayName: 'Publish test results'
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '$(Agent.TempDirectory)/test-results.xml'
+      testRunTitle: 'EcoBite API tests'
   - task: AzureCLI@2
     displayName: 'Deploy infrastructure (Bicep)'
     inputs:
