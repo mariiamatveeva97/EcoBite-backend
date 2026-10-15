@@ -231,3 +231,11 @@ __pycache__/
 main.json
 whatif.txt
 deploy.txt
+
+# macOS en lokale bestanden
+.DS_Store
+.pytest_cache/
+*.zip
+main.json
+whatif.txt
+deploy.txt
