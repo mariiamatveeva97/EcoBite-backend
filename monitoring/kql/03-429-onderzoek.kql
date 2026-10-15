@@ -1,0 +1,7 @@
+// Door de gateway geblokkeerde verzoeken (429)
+ApiManagementGatewayLogs
+| where TimeGenerated > ago(24h)
+| where tolower(_ResourceId) has "ecobite-lktyc37ky6ppu-apim"
+| where ResponseCode == 429
+| project TimeGenerated, Method, Url, ResponseCode, BackendResponseCode, TotalTime
+| order by TimeGenerated desc

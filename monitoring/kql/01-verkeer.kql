@@ -1,0 +1,6 @@
+// Aantal gateway-aanroepen per vijf minuten
+ApiManagementGatewayLogs
+| where TimeGenerated > ago(1h)
+| where tolower(_ResourceId) has "ecobite-lktyc37ky6ppu-apim"
+| summarize Aanroepen = count() by bin(TimeGenerated, 5m)
+| order by TimeGenerated asc
