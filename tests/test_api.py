@@ -6,7 +6,7 @@ from app.services import recipe_service
 def test_health_returns_ok(client):
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "oke"}
+    assert response.json() == {"status": "ok"}
 
 
 def test_recipes_without_login_returns_401(client):
