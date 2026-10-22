@@ -94,6 +94,19 @@ resource apimDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-previ
   }
 }
 
+// 7. Logic App (Consumption): energieberekening als workflow.
+// Zelfde naam als in de portal, dus een volgende deployment werkt dezelfde resource bij.
+resource energyWorkflow 'Microsoft.Logic/workflows@2019-05-01' = {
+  name: 'logic-ecobite-energy'
+  location: location
+  properties: {
+    state: 'Enabled'
+    definition: json(loadTextContent('logic/energy-metrics.json'))
+    parameters: {}
+  }
+}
+
 output webAppName string = webApp.name
 output apimName string = apimService.name
 output webAppHostName string = webApp.properties.defaultHostName
+output logicAppName string = energyWorkflow.name
