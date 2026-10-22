@@ -6,7 +6,7 @@ from fastapi import HTTPException, status
 from app.models.user import User
 from app.schemas.recipe import RecipeResponse
 from app.repositories import recipe_repository, ingredient_repository, user_repository
-from app.clients import groq_client, spoonacular_client, soap_client
+from app.clients import groq_client, spoonacular_client, energy_client
 
 logger = logging.getLogger(__name__)
 
@@ -30,10 +30,9 @@ def generate_recipe_for_user(db: Session, user: User) -> RecipeResponse:
 
     appliance_type = recipe_data.get("appliance", "stove")
     try:
-        energy_data = soap_client.calculate_energy_metrics(
+        energy_data = energy_client.calculate_energy_metrics(
             appliance=appliance_type,
             cooking_time_minutes=recipe.cooking_time_minutes,
-            servings=recipe.servings or 1,
         )
         recipe_repository.add_energy_metrics(db, recipe.id, energy_data)
     except HTTPException as e:

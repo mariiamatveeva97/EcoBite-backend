@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     SPOONACULAR_API_KEY: str = ""
 
     SOAP_SERVICE_URL: str = "http://localhost:8001/"
+    ENERGY_WORKFLOW_URL: str = ""
 
     SECRET_KEY: str = "ecobite-super-secret-key-change-in-production-32-chars-min"
     ALGORITHM: str = "HS256"
