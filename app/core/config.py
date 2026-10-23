@@ -18,10 +18,6 @@ class Settings(BaseSettings):
     SOAP_SERVICE_URL: str = "http://localhost:8001/"
     ENERGY_WORKFLOW_URL: str = ""
 
-    SECRET_KEY: str = "ecobite-super-secret-key-change-in-production-32-chars-min"
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
-
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:5173",  # Vite / React dev server
         "http://127.0.0.1:5173",
