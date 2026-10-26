@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Response, status, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.config import settings
 from app.models.user import User, UserProfile
 from app.schemas.user import UserCreate, RegistrationResponse, UserResponse, UserLogin
 from app.services.auth_service import register_user, authenticate_user
@@ -64,11 +65,10 @@ def login(user_in: UserLogin, response: Response, db: Session = Depends(get_db))
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=False,
-        samesite="lax",
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE,
         max_age=60 * 60 * 24
     )
-
     user = db.query(User).filter(User.email == user_in.email).first()
     if not user:
         print(f"--- WARNING: local user missing for {user_in.email}, recreating from Supabase ---")
@@ -93,7 +93,12 @@ def login(user_in: UserLogin, response: Response, db: Session = Depends(get_db))
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 def logout(response: Response):
-    response.delete_cookie(key="access_token")
+    response.delete_cookie(
+        key="access_token",
+        httponly=True,
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE,
+    )
 
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):

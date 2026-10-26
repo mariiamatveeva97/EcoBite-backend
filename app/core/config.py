@@ -30,4 +30,7 @@ class Settings(BaseSettings):
         extra="ignore"
     )
 
+    COOKIE_SECURE: bool = False
+    COOKIE_SAMESITE: str = "lax"
+
 settings = Settings()
